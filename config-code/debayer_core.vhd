@@ -8,7 +8,7 @@ entity debayer_core is
         enable : in std_logic;
 
         N_reg : in integer range 0 to 1024;
-        new_image : in std_logic;
+        image_dim_vld : in std_logic;
 
         -- 3x3 window
         w00, w01, w02 : in std_logic_vector(7 downto 0);
@@ -62,13 +62,15 @@ begin
     begin
         if rising_edge(clk) then
 
-            if new_image = '1' then
+            if image_dim_vld = '1' then
                 R_reg        <= (others => '0');
                 G_reg        <= (others => '0');
                 B_reg        <= (others => '0');
                 last_pixel_s <= '0';
 
             else 
+
+                --last_pixel_s <= '0';
 
                 if enable = '1' then
 
@@ -151,16 +153,15 @@ begin
                     G_reg <= G_v;
                     B_reg <= B_v;
 
-                end if;
-                    
-                if (row_center = N_reg-1 and col_center = N_reg-1) then
-                    last_pixel_s <= '1';
-                end if;
+                end if;     
                 
+                if row_center = N_reg-1 and col_center = N_reg-1 then
+                    last_pixel_s <= '1';
+                else
+                    last_pixel_s <= '0';
+                end if; 
             end if;
         end if;
-
-
     end process;
 
     --------------------------------------------------------------------

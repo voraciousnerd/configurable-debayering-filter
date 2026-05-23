@@ -13,8 +13,6 @@ entity window_3x3 is
         image_dim      : in std_logic_vector(10 downto 0);
         image_dim_vld  : in std_logic;
 
-        image_finished : in std_logic;
-
         w00          : out std_logic_vector(7 downto 0);
         w01          : out std_logic_vector(7 downto 0);
         w02          : out std_logic_vector(7 downto 0);
@@ -93,7 +91,7 @@ begin
 
     rst <= not rst_n;
 
-    fifo_srst <= rst or image_finished; -- reset FIFOs at the end of each image
+    fifo_srst <= rst or image_dim_vld or config; -- reset FIFOs at the end of each image
 
     --------------------------------------------------------------------
     -- First line buffer
@@ -153,6 +151,7 @@ begin
             valid_d <= '0';
             dummy  <= '0';
             counter <= 0;
+            config <= '0';
             delay   <= (others => '0');
 
             wr1 <= '0';
@@ -183,12 +182,13 @@ begin
 
             delay <= pixel; -- extra delay
 
-            if new_image = '1' then
+            if config = '1' then
                 row_i   <= 0;
                 col_i   <= 0;
                 valid_d <= '0';
                 dummy  <= '0';
                 counter <= 0;
+                config <= '0';
 
                 wr1 <= '0';
                 wr2 <= '0';
@@ -250,7 +250,7 @@ begin
                 r21 <= r22;
                 r22 <= fifo1_dout;
 
-                if counter = 2*N_reg +2 then
+                if counter = 2*N_reg + 2 then
                     dummy <= '1';
                     valid_d <= '1'; -- check gia to synchro tou valid out
                 end if;
@@ -260,17 +260,17 @@ begin
                     valid_d <= '1';
                     if col_i = N_reg-1 then
                         col_i <= 0;
-                        if row_i = N_reg -1 then
+                        if row_i = N_reg-1 then
                             row_i <= 0;
                             valid_d <= '0';
+                            dummy <= '0';
                         else
-                            row_i <= row_i + 1;
+                           row_i <= row_i + 1;
                         end if;
                     else
                         col_i <= col_i + 1;
                     end if;
                 end if;
-            
             end if; 
         end if;
     end process;

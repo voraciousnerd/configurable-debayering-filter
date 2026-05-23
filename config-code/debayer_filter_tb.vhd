@@ -86,7 +86,7 @@ begin
             new_image <= '0';
 
             -- Remaining pixels
-            for i in 1 to N_size * N_size - 1 loop
+            for i in 0 to N_size * N_size - 1 loop
                 readline(input_file, line_in);
                 read(line_in, pval);
                 pixel    <= std_logic_vector(to_unsigned(pval, 8));
@@ -98,7 +98,7 @@ begin
             pixel    <= (others => '0');
             file_close(input_file);
 
-            wait for (N_size * N_size + 4 * N_size + 60) * CLK_PERIOD;
+            wait for (2 * N_size + 10) * CLK_PERIOD;
         end procedure;
 
     begin
@@ -119,6 +119,7 @@ begin
         image_dim_vld <= '1';
         wait until rising_edge(clk);
         image_dim_vld <= '0';
+        image_dim   <= (others => '0');
         wait for 5 * CLK_PERIOD;
 
         send_image(N1, "input_32x32.txt");
@@ -130,6 +131,7 @@ begin
         image_dim_vld <= '1';
         wait until rising_edge(clk);
         image_dim_vld <= '0';
+        image_dim   <= (others => '0');
         wait for 5 * CLK_PERIOD;
 
         send_image(N2, "input_64x64.txt");
@@ -147,15 +149,20 @@ begin
         variable lo : line;
         variable r_i, g_i, b_i : integer;
         variable writing_32 : boolean := true;
-
-    begin
+        variable meh : boolean := false; 
+    
+        begin
         file_open(out32, "output_sim_32.txt", write_mode);
         file_open(out64, "output_sim_64.txt", write_mode);
 
         loop
             wait until rising_edge(clk);
 
-            if image_finished = '1' then
+            if image_finished = '1' then 
+                meh := true; 
+            end if;
+
+            if image_finished = '0' and meh = true then 
                 writing_32 := false; 
             end if;
 
